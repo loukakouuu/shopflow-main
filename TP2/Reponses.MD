@@ -4,7 +4,6 @@
 
 ### Q1.1 - Architecture TestClient vs requests
 
-**Réponse:**
 
 **TestClient (approche TP2):**
 - Teste l'app FastAPI **sans serveur HTTP** — appels directs en mémoire
@@ -34,7 +33,6 @@ def client(db_session):
 
 ### Q1.2 - Scope='module' et isolation des données
 
-**Réponse:**
 
 **Scope='module':**
 - TestClient créé **une seule fois** par fichier de test
@@ -63,7 +61,6 @@ def test_creer_commande(client, api_product):
 
 ### Q1.3 - Assertions dans les fixtures vs tests
 
-**Réponse:**
 
 **Dans la fixture (précondition):**
 ```python
@@ -74,7 +71,6 @@ def api_product(client):
     return response.json()
 ```
 
-**Intentionalité:**
 - Si la création échoue (422, 500) → fixture s'arrête
 - Évite les faux négatifs : "test échoue" mais c'est vraiment un problème d'infrastructure
 - Nettoie la test setup → test += confiance
@@ -397,7 +393,7 @@ test_orders_api.py::TestOrders::test_get_commande_par_id PASSED
 10 passed in 1.23s
 ```
 
-Total TTC correct : ✓ **test_total_ttc_correct() PASSED** avec `total_ttc == 240.0`
+Total TTC correct :  **test_total_ttc_correct() PASSED** avec `total_ttc == 240.0`
 
 ### Q3.3 - Test `test_coupon_inexistant_retourne_404()`
 
@@ -412,7 +408,7 @@ def test_coupon_inexistant_retourne_404(self, client):
     assert response.status_code == 404
 ```
 
-Implémenté et **PASSED** ✓
+Implémenté et **PASSED** 
 
 ### Q3.4 - Test `test_get_commande_par_id()`
 
@@ -431,7 +427,7 @@ def test_get_commande_par_id(self, client):
     assert data['total_ttc'] > 0
 ```
 
-Implémenté et **PASSED** ✓
+Implémenté et **PASSED** 
 
 ---
 
@@ -473,11 +469,10 @@ def test_noms_longs(self, client):
     assert response_ok.status_code == 201
 ```
 
-Implémenté et **PASSED** ✓
+Implémenté et **PASSED** 
 
 ### Q4.3 - Différence entre `Faker('fr_FR')` et `Faker()`
 
-**Réponse:**
 - **`Faker('fr_FR')`** : génère des données **localisées en français** (noms, adresses, phrases, nombres)
 - **`Faker()` (par défaut)** : génère des données en anglais (Locale: en_US)
 
@@ -542,7 +537,7 @@ app/main.py                   12    0   100%
 ----------------------------------------------
 TOTAL                        212    8    96%
 
-Coverage 96% >= 80% ✓ PASSED
+Coverage 96% >= 80%  PASSED
 ```
 
 ### Q5.3 - Différence entre test d'intégration et smoke test

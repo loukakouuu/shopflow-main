@@ -15,18 +15,17 @@ shopflow-sonarqube       "bin/run.sh bin/...start.sh"  sonarqube     Up 1 minute
 ### Q1.2 - Plugins à installer dans Jenkins
 
 Installation réussie des plugins requis :
-- ✓ Pipeline
-- ✓ SonarQube Scanner
-- ✓ HTML Publisher
-- ✓ JUnit
-- ✓ Docker Pipeline
-- ✓ Git
+-  Pipeline
+-  SonarQube Scanner
+-  HTML Publisher
+-  JUnit
+-  Docker Pipeline
+-  Git
 
 Chemin : Jenkins → Manage Jenkins → Plugins
 
 ### Q1.3 - Pourquoi `http://sonarqube:9000` au lieu de `http://localhost:9000`?
 
-**Réponse:**
 - **`http://sonarqube:9000`** : utilise le **nom du service Docker** comme hostname. Grâce au réseau Docker compose, Jenkins (dans un conteneur) peut accéder à SonarQube directement par son nom de service.
 - **`http://localhost:9000`** : serait une résolution locale depuis Jenkins, qui pointerait sur le conteneur Jenkins lui-même, pas sur SonarQube.
 
@@ -53,25 +52,25 @@ Documentation :
 **Vue des stages dans Jenkins** :
 
 ```
-✓ Install         (✓ PASSED - 15s)
+ Install         ( PASSED - 15s)
   ├─ pip install -r requirements.txt
   └─ Dépendances installées
 
-✓ Lint            (✓ PASSED - 8s)
+ Lint            ( PASSED - 8s)
   ├─ flake8 app/ --max-line-length=100
   └─ 0 erreurs PEP8
 
-✓ Unit Tests      (✓ PASSED - 12s)
+ Unit Tests      ( PASSED - 12s)
   ├─ pytest tests/unit/ -m unit
   ├─ 11 passed
   └─ junit-unit.xml généré
 
-✓ Integration     (✓ PASSED - 18s)
+ Integration     ( PASSED - 18s)
   ├─ pytest tests/integration/ -m integration
   ├─ 52 passed
   └─ junit-integration.xml généré
 
-✓ Coverage        (✓ PASSED - 22s)
+ Coverage        ( PASSED - 22s)
   ├─ pytest tests/ --cov=app --cov-fail-under=80
   ├─ Coverage: 96% >= 80%
   └─ coverage.xml + htmlcov/ générés
@@ -114,7 +113,7 @@ app/cache.py                   8    0   100%
 -----------------------------------------------
 TOTAL                        220    7    97%
 
-Coverage: 97% >= 80% ✓ PASSED
+Coverage: 97% >= 80%  PASSED
 ```
 
 ### Q2.4 - Test avec erreur PEP8 intentionnelle
@@ -135,7 +134,7 @@ Pipeline stopped at Lint
 ```
 
 **Exécution du pipeline** : 
-- ❌ **Lint FAILED**
+-  **Lint FAILED**
 - Les stages Unit Tests, Integration, Coverage NE S'EXÉCUTENT PAS
 - **Fail Fast en action** : économie de ressources
 
@@ -146,19 +145,19 @@ Pipeline stopped at Lint
 ### Q3.1 - Pipeline avec 8 stages (ajout Static Analysis + SonarQube + Quality Gate)
 
 ```
-✓ Install                    (✓ PASSED - 15s)
-✓ Lint                       (✓ PASSED - 8s)
-✓ Unit Tests                 (✓ PASSED - 12s)
-✓ Integration Tests          (✓ PASSED - 18s)
-✓ Coverage                   (✓ PASSED - 22s)
-✓ Static Analysis            (✓ PASSED - 30s)
+ Install                    ( PASSED - 15s)
+ Lint                       ( PASSED - 8s)
+ Unit Tests                 ( PASSED - 12s)
+ Integration Tests          ( PASSED - 18s)
+ Coverage                   ( PASSED - 22s)
+ Static Analysis            ( PASSED - 30s)
   ├─ Pylint: 145 issues détectés (infos/warnings)
   └─ Bandit: 0 vulnérabilités HIGH
-✓ SonarQube Analysis         (✓ PASSED - 45s)
+ SonarQube Analysis         ( PASSED - 45s)
   └─ Analyse envoyée à SonarQube
-✓ Quality Gate               (✓ PASSED - 5s)
+ Quality Gate               ( PASSED - 5s)
   └─ Condition met: Coverage ≥ 80%, 0 bugs, 0 vulnerabilities
-✓ Build Docker              (✓ PASSED - 35s)
+ Build Docker              ( PASSED - 35s)
 ```
 
 ### Q3.2 - Dashboard SonarQube - Métriques
@@ -171,21 +170,21 @@ URL : http://localhost:9000/dashboard?id=shopflow
 ┌──────────────────────────────────────────┐
 │         ShopFlow - Dashboard             │
 ├──────────────────────────────────────────┤
-│ Coverage:              97% ✓              │
-│ Bugs:                   0  ✓              │
-│ Vulnerabilities:        0  ✓              │
+│ Coverage:              97%               │
+│ Bugs:                   0                │
+│ Vulnerabilities:        0                │
 │ Code Smells:            5  (Minor)        │
 │ Technical Debt:       1.2h                │
 │ Lines of Code:        412                 │
 │ Duplicated Lines:     0.5%                │
-│ Maintainability:      A  ✓                │
-│ Reliability:          A  ✓                │
-│ Security:             A  ✓                │
-│ Quality Gate:         PASSED ✓            │
+│ Maintainability:      A                  │
+│ Reliability:          A                  │
+│ Security:             A                  │
+│ Quality Gate:         PASSED             │
 └──────────────────────────────────────────┘
 ```
 
-**Quality Gate Status** : ✅ **PASSED**
+**Quality Gate Status** :  **PASSED**
 
 ---
 
@@ -215,12 +214,12 @@ Ouverture du `bandit-report.json` :
 
 **Comment corriger Result 1** (hardcoded password) :
 
-**Avant** (❌ Vulnérable) :
+**Avant** ( Vulnérable) :
 ```python
 app = FastAPI(secret_key="my-secret-key-in-code")
 ```
 
-**Après** (✓ Sécurisé) :
+**Après** ( Sécurisé) :
 ```python
 import os
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-key-change-in-prod")
@@ -234,20 +233,20 @@ app = FastAPI(secret_key=SECRET_KEY)
 ### Q4.1 - Pipeline complet avec 9 stages
 
 ```
-✅ PIPELINE PASSED - 3min 25s
+ PIPELINE PASSED - 3min 25s
 
 Stage Timeline:
 ┌──────────────────────────────────────────────────────┐
-│ 1. Install                      ✓ (15s)  |████       │
-│ 2. Lint                         ✓ (8s)   |██         │
-│ 3. Unit Tests                   ✓ (12s)  |███        │
-│ 4. Integration Tests            ✓ (18s)  |████       │
-│ 5. Coverage                     ✓ (22s)  |█████      │
-│ 6. Static Analysis              ✓ (30s)  |███████    │
-│ 7. SonarQube Analysis           ✓ (45s)  |██████████ │
-│ 8. Quality Gate                 ✓ (5s)   |█          │
-│ 9. Build Docker                 ✓ (35s)  |████████   │
-│ 10. Deploy Staging              ✓ (40s)  |█████████  │
+│ 1. Install                       (15s)  |████       │
+│ 2. Lint                          (8s)   |██         │
+│ 3. Unit Tests                    (12s)  |███        │
+│ 4. Integration Tests             (18s)  |████       │
+│ 5. Coverage                      (22s)  |█████      │
+│ 6. Static Analysis               (30s)  |███████    │
+│ 7. SonarQube Analysis            (45s)  |██████████ │
+│ 8. Quality Gate                  (5s)   |█          │
+│ 9. Build Docker                  (35s)  |████████   │
+│ 10. Deploy Staging               (40s)  |█████████  │
 └──────────────────────────────────────────────────────┘
 
 Build Image: shopflow:5a3f2b1
@@ -268,7 +267,7 @@ $ curl http://localhost:8001/health
 }
 ```
 
-**Réponse** : ✅ **200 OK** - Staging opérationnel
+**Réponse** :  **200 OK** - Staging opérationnel
 
 ### Q4.3 - Déploiement sur branche feature/test
 
@@ -302,22 +301,22 @@ Le `when { branch 'main' }` bloque l'exécution sur les autres branches. Les 8 p
 
 | Tag | Avantage | Inconvénient |
 |-----|----------|-------------|
-| `latest` | Simple | ❌ Perd la traçabilité, impossible de rollback |
-| `v0.1.0` | Sémantique | ❌ Nécessite bump manuel, pas d'historique |
-| `5a3f2b1` (SHA) | ✅ **Traçable** | Peu élégant mais parfait pour CI/CD |
+| `latest` | Simple |  Perd la traçabilité, impossible de rollback |
+| `v0.1.0` | Sémantique |  Nécessite bump manuel, pas d'historique |
+| `5a3f2b1` (SHA) |  **Traçable** | Peu élégant mais parfait pour CI/CD |
 
 **Avantage pour le rollback** :
 
 ```bash
 # Commit défectueux : 7c9e4d2
 # Vérifier : docker run shopflow:7c9e4d2 --ci
-# ❌ Crash
+#  Crash
 
 # Rollback au commit précédent : 5a3f2b1
 docker compose -f docker-compose.staging.yml down
 export IMAGE_TAG=5a3f2b1
 docker compose -f docker-compose.staging.yml up -d
-# ✓ Staging restauré
+#  Staging restauré
 
 # Accès à l'historique complet via git log
 $ git log --oneline
@@ -327,11 +326,11 @@ a1b2c3d Initial commit
 ```
 
 **Bénéfices du SHA Git** :
-1. ✓ Lien direct entre image Docker et commit Git
-2. ✓ Traçabilité absolue : pouvoir identifier exactement quel code tourne en prod
-3. ✓ Rollback instantané sans bump de version
-4. ✓ Historique complet accessible via `git log`
-5. ✓ Pas de confusion avec les tags sémantiques
+1.  Lien direct entre image Docker et commit Git
+2.  Traçabilité absolue : pouvoir identifier exactement quel code tourne en prod
+3.  Rollback instantané sans bump de version
+4.  Historique complet accessible via `git log`
+5.  Pas de confusion avec les tags sémantiques
 
 ---
 
@@ -342,7 +341,7 @@ a1b2c3d Initial commit
 **Configuration Jenkins** :
 - Jenkins → New Item → Pipeline → shopflow
 - General → GitHub project : https://github.com/VOTRE_PSEUDO/shopflow
-- Build Triggers → GitHub hook trigger for GITScm polling ✓
+- Build Triggers → GitHub hook trigger for GITScm polling 
 - Pipeline → Definition : Pipeline script from SCM
 - SCM → Git → Repository URL : https://github.com/VOTRE_PSEUDO/shopflow.git
 - Script Path : Jenkinsfile
@@ -367,10 +366,10 @@ a1b2c3d Initial commit
 **Log de déclenchement** :
 ```
 Triggered Hooks:
-  ✓ GitHub push event received
-  ✓ Commit hash: 8f3a9c2
-  ✓ Branch: main
-  ✓ Message: Add health endpoint
+   GitHub push event received
+   Commit hash: 8f3a9c2
+   Branch: main
+   Message: Add health endpoint
 ```
 
 ### Q5.2 - Vue finale du pipeline avec 9 stages en vert
@@ -379,16 +378,16 @@ Triggered Hooks:
 ShopFlow - Pipeline Success #42
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Stage: Install           | ✓ PASSED (15s)
-Stage: Lint             | ✓ PASSED (8s)
-Stage: Unit Tests       | ✓ PASSED (12s)
-Stage: Integration      | ✓ PASSED (18s)
-Stage: Coverage         | ✓ PASSED (22s) | Coverage: 97%
-Stage: Static Analysis  | ✓ PASSED (30s) | Bandit: 0 HIGH
-Stage: SonarQube        | ✓ PASSED (45s) | Quality: PASSED
-Stage: Quality Gate     | ✓ PASSED (5s)
-Stage: Build Docker     | ✓ PASSED (35s) | Image: shopflow:8f3a9c2
-Stage: Deploy Staging   | ✓ PASSED (40s) | http://localhost:8001/health → ok
+Stage: Install           |  PASSED (15s)
+Stage: Lint             |  PASSED (8s)
+Stage: Unit Tests       |  PASSED (12s)
+Stage: Integration      |  PASSED (18s)
+Stage: Coverage         |  PASSED (22s) | Coverage: 97%
+Stage: Static Analysis  |  PASSED (30s) | Bandit: 0 HIGH
+Stage: SonarQube        |  PASSED (45s) | Quality: PASSED
+Stage: Quality Gate     |  PASSED (5s)
+Stage: Build Docker     |  PASSED (35s) | Image: shopflow:8f3a9c2
+Stage: Deploy Staging   |  PASSED (40s) | http://localhost:8001/health → ok
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Total Time: 3min 30s | Status: SUCCESS | Commit: 8f3a9c2

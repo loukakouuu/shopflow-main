@@ -22,7 +22,6 @@ tests/unit/test_stock.py::TestReserverStock::test_reservation_reussie
 
 ### Q1.2 - Différence entre `scope='module'` et `scope='function'`
 
-**Réponse:**
 - **`scope='function'`** : La fixture est recréée pour chaque test individuel. Chaque test reçoit sa propre BDD vierge isolée.
 - **`scope='module'`** : La fixture est recréée une seule fois par fichier de test. Tous les tests du module partagent la même instance.
 
@@ -30,7 +29,6 @@ Pour les tests unitaires, on utilise `scope='function'` pour l'isolation. Pour l
 
 ### Q1.3 - Rôle du `session.rollback()` dans la fixture
 
-**Réponse:**
 Le `session.rollback()` annule toutes les modifications du test (INSERT, UPDATE, DELETE). La prochaine session repart d'une BDD propre. Sans rollback(), les modifications du test seraient persistées et les tests suivants verraient les données du test précédent.
 
 ### Q1.4 - Fichier `.coveragerc`
@@ -151,7 +149,6 @@ def test_liberation_stock(product_sample, db_session, mocker):
 
 ### Q3.3 - Que se passe-t-il sans `mocker.patch('app.cache.redis_client')`?
 
-**Réponse:**
 Sans le mock, le test tente réellement de se connecter à Redis. L'erreur obtenue est :
 
 ```
@@ -163,7 +160,6 @@ Car Redis n'est pas démarré en local (et même s'il l'était en prod, on ne ve
 
 ### Q3.4 - Différence entre `mocker.patch()` et `mocker.patch.object()`
 
-**Réponse:**
 
 ```python
 # mocker.patch() : remplace un objet par son chemin string (module.objet)
@@ -203,14 +199,14 @@ app/cache.py                      8    0    100%
 -------------------------------------------------
 TOTAL                            62    3     95%
 
-Coverage >= 80% ✓ PASSED
+Coverage >= 80%  PASSED
 ```
 
 ### Q4.2 - Lecture du rapport Coverage.py
 
-- **🟢 Vert (Covered)** : lignes exécutées par au moins un test
-- **🔴 Rouge (Missing)** : lignes jamais exécutées — il manque un test
-- **🟡 Jaune (Partial)** : condition testée que dans un sens (ex: `if True` mais jamais `if False`)
+- ** Vert (Covered)** : lignes exécutées par au moins un test
+- ** Rouge (Missing)** : lignes jamais exécutées — il manque un test
+- ** Jaune (Partial)** : condition testée que dans un sens (ex: `if True` mais jamais `if False`)
 
 **Objectif** : 0 lignes rouges dans `services/` et `routes/`
 

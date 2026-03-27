@@ -27,7 +27,7 @@ def _create_redis_client():
 
 redis_client = _create_redis_client()
 
-# ── Helpers de cache ─────────────────────────────────────────
+# Helpers de cache
 CACHE_TTL = int(os.getenv("CACHE_TTL", "300"))
 
 

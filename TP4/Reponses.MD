@@ -320,13 +320,13 @@ Issues détectés :
 **Vulnérabilité 1 - B105 (Hardcoded password):**
 ```python
 # AVANT (INSECURE) - Dans app/security_demo.py
-REDIS_PASSWORD = 'admin123'  # ❌ Bandit détecte: "Possible hardcoded password"
+REDIS_PASSWORD = 'admin123'  #  Bandit détecte: "Possible hardcoded password"
 ```
 
 **Vulnérabilité 2 - B501 (SSL verification disabled):**
 ```python
 # AVANT (INSECURE) - Dans app/security_demo.py
-response = requests.get('https://api.example.com', verify=False)  # ❌ Bandit détecte: "Call with verify=False"
+response = requests.get('https://api.example.com', verify=False)  #  Bandit détecte: "Call with verify=False"
 ```
 
 **Sortie Bandit détectant les 2:**
@@ -369,8 +369,8 @@ response = requests.get(
 bandit app/security_demo.py -v
 
 Result after corrections:
-  [B501] ✅ DISPARU - Plus de verify=False
-  [B105] ✅ DISPARU - Password dynamique via os.getenv()
+  [B501]  DISPARU - Plus de verify=False
+  [B105]  DISPARU - Password dynamique via os.getenv()
   Reste seulement B301 (pickle) à titre informatif
 ```
 
@@ -378,7 +378,6 @@ Result after corrections:
 
 ### Q3.4 : Pourquoi `verify=False` est une vulnérabilité
 
-**Explication technique :**
 
 `verify=False` désactive la **vérification du certificat SSL/TLS**, ce qui rend possible :
 
@@ -387,7 +386,7 @@ Result after corrections:
 ```
 ┌─────────────┐                                  ┌─────────────┐
 │   Client    │──────── HTTPS verify=False ─────→│   Server    │
-│ ShopFlow    │ ❌ Pas vérification certif       │ api.exemple │
+│ ShopFlow    │  Pas vérification certif       │ api.exemple │
 └─────────────┘                                  └─────────────┘
                     ↓ ATTAQUANT INTERCEPTE ↓
              ┌──────────────────────────┐

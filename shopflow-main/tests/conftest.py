@@ -13,7 +13,7 @@ fake = Faker('fr_FR')
 
 @pytest.fixture(autouse=True)
 def mock_cache(mocker):
-    """Mock cache functions to avoid testing cache logic in integration tests."""
+    """Mock des fonctions de cache pour les tests."""
     mocker.patch("app.routes.products.get_cached", return_value=None)
     mocker.patch("app.routes.products.set_cached")
     mocker.patch("app.routes.products.delete_cached")
@@ -37,7 +37,14 @@ def db_session(db_engine):
     Session = sessionmaker(bind=db_engine)
     session = Session()
     yield session
-    session.rollback()
+    # Nettoyer les données après chaque test
+    from sqlalchemy import delete
+    session.execute(delete(CartItem))
+    session.execute(delete(Cart))
+    session.execute(delete(Order))
+    session.execute(delete(Product))
+    session.execute(delete(Coupon))
+    session.commit()
     session.close()
 
 # FIXTURES DE DONNÉES
@@ -67,7 +74,7 @@ def coupon_sample(db_session):
     return c
 
 
-# ───── FIXTURES TESTCLIENT & INTÉGRATION ─────
+# Fixtures TestClient & Intégration
 
 @pytest.fixture(scope="module")
 def client(db_engine):
@@ -110,7 +117,7 @@ def api_coupon(client):
     yield response.json()
 
 
-# ───── FIXTURES FAKER ─────
+# Fixtures Faker
 
 @pytest.fixture
 def fake_product_data():
