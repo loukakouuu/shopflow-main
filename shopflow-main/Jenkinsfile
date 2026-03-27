@@ -1,0 +1,248 @@
+// Jenkinsfile — ShopFlow CI/CD Pipeline
+pipeline {
+    agent {
+        docker {
+            image 'python:3.11-slim'
+            args '--user root -v /var/run/docker.sock:/var/run/docker.sock'
+        }
+    }
+
+    environment {
+        APP_NAME = 'shopflow'
+        REGISTRY = 'docker.io'
+        IMAGE_NAME = "${APP_NAME}"
+        IMAGE_TAG = ""
+    }
+
+    stages {
+        stage('Install') {
+            steps {
+                sh '''
+                    apt-get update -qq && apt-get install -y -qq git docker.io curl
+                    pip install --upgrade pip -q
+                    pip install -r requirements.txt -q
+                    echo "✓ Dépendances installées"
+                '''
+            }
+        }
+
+        stage('Lint') {
+            steps {
+                sh '''
+                    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                    echo "▶ Flake8 — Vérification PEP8"
+                    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                    flake8 app/ \\
+                        --max-line-length=100 \\
+                        --exclude=__init__.py \\
+                        --format=pylint \\
+                        --statistics || exit 1
+                    echo "✓ Lint réussi"
+                '''
+            }
+            post {
+                failure {
+                    echo '❌ Lint échoué — corriger les erreurs PEP8'
+                }
+            }
+        }
+
+        stage('Unit Tests') {
+            steps {
+                sh '''
+                    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                    echo "▶ Tests Unitaires (pytest -m unit)"
+                    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                    pytest tests/unit/ \\
+                        -v \\
+                        -m unit \\
+                        --junitxml=junit-unit.xml \\
+                        --no-cov || exit 1
+                    echo "✓ Tests unitaires réussis"
+                '''
+            }
+            post {
+                always {
+                    junit 'junit-unit.xml'
+                }
+            }
+        }
+
+        stage('Integration Tests') {
+            steps {
+                sh '''
+                    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                    echo "▶ Tests d'Intégration (pytest -m integration)"
+                    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                    pytest tests/integration/ \\
+                        -v \\
+                        -m integration \\
+                        --junitxml=junit-integration.xml \\
+                        --no-cov || exit 1
+                    echo "✓ Tests d'intégration réussis"
+                '''
+            }
+            post {
+                always {
+                    junit 'junit-integration.xml'
+                }
+            }
+        }
+
+        stage('Coverage') {
+            steps {
+                sh '''
+                    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                    echo "▶ Coverage (pytest --cov)"
+                    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                    pytest tests/ \\
+                        --cov=app \\
+                        --cov-report=xml:coverage.xml \\
+                        --cov-report=html:htmlcov \\
+                        --cov-report=term-missing \\
+                        --cov-fail-under=80 \\
+                        --junitxml=junit-report.xml || exit 1
+                    echo "✓ Coverage ≥ 80% ✓"
+                '''
+            }
+            post {
+                always {
+                    publishHTML(target: [
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'htmlcov',
+                        reportFiles: 'index.html',
+                        reportName: 'Coverage Report'
+                    ])
+                }
+                failure {
+                    echo '❌ Coverage < 80% — ajouter des tests'
+                }
+            }
+        }
+
+        stage('Static Analysis') {
+            steps {
+                sh '''
+                    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                    echo "▶ Pylint + Bandit (analyse statique)"
+                    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                    
+                    # Pylint — code smells et conventions
+                    pylint app/ \\
+                        --output-format=parseable \\
+                        --exit-zero > pylint-report.txt 2>&1 || true
+                    echo "✓ Pylint terminé"
+                    
+                    # Bandit — analyse sécurité Python (CWE/OWASP)
+                    bandit -r app/ \\
+                        -f json \\
+                        -o bandit-report.json \\
+                        --exit-zero || true
+                    
+                    # Échouer si vulnérabilités HIGH détectées
+                    python3 -c "
+import json, sys
+with open('bandit-report.json') as f:
+    data = json.load(f)
+    high = [r for r in data.get('results',[]) if r['issue_severity'] == 'HIGH']
+    if high:
+        print(f'❌ BANDIT: {len(high)} vulnérabilité(s) HIGH détectée(s)')
+        sys.exit(1)
+    print(f'✓ BANDIT: {len(data.get(\"results\", []))} problème(s) détecté(s), aucun HIGH')
+                    "
+                '''
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh '''
+                        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                        echo "▶ SonarQube Analysis (sonar-scanner)"
+                        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                        
+                        pip install -q sonar-scanner
+                        sonar-scanner \\
+                            -Dsonar.projectKey=shopflow \\
+                            -Dsonar.sources=app \\
+                            -Dsonar.tests=tests \\
+                            -Dsonar.python.coverage.reportPaths=coverage.xml \\
+                            -Dsonar.python.pylint.reportPaths=pylint-report.txt \\
+                            -Dsonar.host.url=${SONAR_HOST_URL} \\
+                            -Dsonar.login=${SONAR_AUTH_TOKEN} || exit 1
+                        echo "✓ SonarQube Analysis envoyée"
+                    '''
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
+        stage('Build Docker') {
+            steps {
+                script {
+                    env.IMAGE_TAG = sh(
+                        script: 'git rev-parse --short HEAD || echo "dev"',
+                        returnStdout: true
+                    ).trim()
+                    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                    echo "▶ Build Docker Image: ${IMAGE_NAME}:${IMAGE_TAG}"
+                    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                    sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} -t ${IMAGE_NAME}:latest ."
+                    echo "✓ Docker image buildée"
+                }
+            }
+        }
+
+        stage('Deploy Staging') {
+            when {
+                branch 'main'
+            }
+            steps {
+                sh '''
+                    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                    echo "▶ Deploy Staging (branche main)"
+                    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                    
+                    export IMAGE_TAG='${IMAGE_TAG}'
+                    docker compose -f docker-compose.staging.yml down || true
+                    docker compose -f docker-compose.staging.yml up -d --remove-orphans
+                    docker compose -f docker-compose.staging.yml ps
+                    
+                    # Smoke test
+                    sleep 5
+                    curl -f http://localhost:8001/health || exit 1
+                    echo "✓ Staging déployé et opérationnel"
+                '''
+            }
+            post {
+                failure {
+                    sh 'docker compose -f docker-compose.staging.yml logs --tail=50'
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            archiveArtifacts artifacts: 'junit-*.xml,coverage.xml,*-report.json,*-report.txt',
+                allowEmptyArchive: true
+            sh 'docker system prune -f || true'
+        }
+        success {
+            echo "✅ Pipeline OK — ShopFlow:${env.IMAGE_TAG}"
+        }
+        failure {
+            echo "❌ Pipeline FAILED"
+        }
+    }
+}
